@@ -155,6 +155,12 @@ def is_element_by_css(driver, css):
     except Exception as e:
         return None
 
+def is_elem_concatenate_by_css(element, css):
+    try:
+        return element.find_element_by_css_selector(css)
+    except Exception as e:
+        return None
+
 
 def get_all_elements_by_css(driver, selector, logger):
     try:
@@ -229,6 +235,14 @@ def main():
                     for ctr, el in enumerate(all, 1):
                         idx += 1
                         asin_temp = el.get_attribute('data-asin')
+                        if is_elem_concatenate_by_css(el, 'h5[data-alt-pixel-url*="sponsored-products"]'):
+                            if asin_temp == asin:
+                                logger.info('found asin {} but its sponsored-products'.format(asin))
+                                result.append([asin, search, get_today(), next_ctr + 1, "sponsored-products" ])
+                            # sponosored so deduct
+                            idx -= 1
+                            continue
+
                         if asin_temp == asin:
                             result.append([asin, search, get_today(), next_ctr + 1, idx])
                             logger.info('found asin {} at place: {}'.format(asin, idx))
