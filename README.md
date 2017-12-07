@@ -21,3 +21,19 @@ Output file fields:
 * Column D: PAGE NUMBER
 * Column E: recorded rank (or “NF[x]”) or “Failed” (in the case of crawler error)
 * If a search term has been set to inactive, then the cell can just record “inactive”
+
+## Set as a cron job (daily)
+* open terminal ```cd``` to amazon-search and grab the path with ```pwd``` e.g. /Users/xxxx/amazon-search
+* exec ```crontab -e``` and add the following
+
+```
+* 07 * * * cd /Users/xxxx/amazon-search && source ./path.sh && python run.py
+```
+
+so it will execute at 7:00 AM
+reference: [cron job](https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-on-mac-osx.html)
+* save it
+* exec ```crontab -l``` to make sure the job is added
+* after it's run, you can run again ```crontab -l``` to check if it's successful
+e.g. You have new mail in /var/mail/rafalfusik so you can ```vi /var/mail/rafalfusik```
+
