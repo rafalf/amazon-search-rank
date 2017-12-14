@@ -115,7 +115,7 @@ def click_by_css(driver, selector, logger):
         return el
     except Exception as e:
         logger.info('click_by_css: UnexpectedException: %s' % e)
-        return None
+        raise Exception('click_by_css: UnexpectedException: %s' % e)
 
 
 def send_by_css(driver, selector, value, logger, clear=True):
@@ -127,7 +127,7 @@ def send_by_css(driver, selector, value, logger, clear=True):
         logger.info('send_by_css: sent: {}'.format(value))
     except Exception as e:
         logger.info('send_by_css: UnexpectedException: %s' % e)
-        return None
+        raise Exception('send_by_css: UnexpectedException: %s' % e)
 
 
 def get_element_clickable_by_css(driver, selector):
@@ -207,73 +207,78 @@ def main():
 
     conf = get_config()
     input_data = get_csv()
+    logger = get_logger()
 
-    with get_driver(conf['headless'], conf['browser']) as driver:
-        logger = get_logger()
-        logger.info('loaded: {}'.format(AMAZON_URL))
+    result = []
+    for asin, search, active, details in input_data:
 
-        result = []
-        for asin, search, active, details in input_data:
+        with get_driver(conf['headless'], conf['browser']) as driver:
+            logger.info('loaded: {}'.format(AMAZON_URL))
 
             driver.get('https://www.amazon.com/ref=nb_sb_noss_null')
             found_asin = False
-            if active != "yes":
-                result.append([asin, search, get_today(), 'not active'])
-                continue
 
-            send_by_css(driver, ".nav-search-field input", search, logger)
-            click_by_css(driver, '[value="Go"]', logger)
-            send_enter(driver)
-            wait_out_spinner(driver, logger)
+            try:
+                if active != "yes":
+                    result.append([asin, search, get_today(), 'not active'])
+                    continue
 
-            idx = 0
-            for next_ctr in range(conf['max_search']):
-                search_items = get_element_by_css(driver, '#s-result-count', logger, True, 10)
-                if search_items:
-                    logger.info('items found: {}'.format(search_items.text))
-                    all = get_all_elements_by_css(driver, '.s-result-item[data-asin]', logger)
-                    for ctr, el in enumerate(all, 1):
-                        idx += 1
-                        asin_temp = el.get_attribute('data-asin')
-                        if is_elem_concatenate_by_css(el, 'h5[data-alt-pixel-url*="sponsored-products"]'):
+                send_by_css(driver, ".nav-search-field input", search, logger)
+                click_by_css(driver, '[value="Go"]', logger)
+                send_enter(driver)
+                wait_out_spinner(driver, logger)
+
+                idx = 0
+                for next_ctr in range(conf['max_search']):
+                    search_items = get_element_by_css(driver, '#s-result-count', logger, True, 10)
+                    if search_items:
+                        logger.info('items found: {}'.format(search_items.text))
+                        all = get_all_elements_by_css(driver, '.s-result-item[data-asin]', logger)
+                        for ctr, el in enumerate(all, 1):
+                            idx += 1
+                            asin_temp = el.get_attribute('data-asin')
+                            if is_elem_concatenate_by_css(el, 'h5[data-alt-pixel-url*="sponsored-products"]'):
+                                if asin_temp == asin:
+                                    logger.info('found asin {} but its sponsored-products'.format(asin))
+                                    result.append([asin, search, get_today(), next_ctr + 1, "sponsored-products" ])
+                                # sponosored so deduct
+                                idx -= 1
+                                continue
+
                             if asin_temp == asin:
-                                logger.info('found asin {} but its sponsored-products'.format(asin))
-                                result.append([asin, search, get_today(), next_ctr + 1, "sponsored-products" ])
-                            # sponosored so deduct
-                            idx -= 1
-                            continue
-
-                        if asin_temp == asin:
-                            result.append([asin, search, get_today(), next_ctr + 1, idx])
-                            logger.info('found asin {} at place: {}'.format(asin, idx))
-                            found_asin = True
-                            break
-                else:
-                    # search item not found
-                    result.append([asin, search, get_today(),"",'error: not found searched items returned'])
-                    logger.info('searched items not returned')
-                    break
-
-                # asin not found yet
-                if not found_asin:
-                    if click_by_css(driver, '#pagnNextString', logger):
-                        logger.info('asin not found - next {} clicked'.format(next_ctr + 1))
-                        wait_out_spinner(driver, logger)
+                                result.append([asin, search, get_today(), next_ctr + 1, idx])
+                                logger.info('found asin {} at place: {}'.format(asin, idx))
+                                found_asin = True
+                                break
                     else:
-                        # asin not found, unable to click next page
-                        result.append([asin, search, get_today(),"",'error: unable to click next page: {}'.format(next_ctr + 1)])
+                        # search item not found
+                        result.append([asin, search, get_today(),"",'error: not found searched items returned'])
+                        logger.info('searched items not returned')
+                        break
+
+                    # asin not found yet
+                    if not found_asin:
+                        if click_by_css(driver, '#pagnNextString', logger):
+                            logger.info('asin not found - next {} clicked'.format(next_ctr + 1))
+                            wait_out_spinner(driver, logger)
+                        else:
+                            # asin not found, unable to click next page
+                            result.append([asin, search, get_today(),"",'error: unable to click next page: {}'.format(next_ctr + 1)])
+                    else:
+                        break
+
                 else:
-                    break
+                    # asin not found, max search reached
+                    result.append([asin, search, get_today(),"", 'not found on pages: {}'.format(conf['max_search'])])
+                    logger.info('asin not found - max search reached'.format(conf['max_search']))
 
-            else:
-                # asin not found, max search reached
-                result.append([asin, search, get_today(),"", 'not found on pages: {}'.format(conf['max_search'])])
-                logger.info('asin not found - max search reached'.format(conf['max_search']))
+            except Exception as err:
+                result.append([asin, search, get_today(), "", err])
 
-        logger.info('Summary:')
-        for r in result:
-            logger.info(r)
-            append_output_row(r)
+    logger.info('Summary:')
+    for r in result:
+        logger.info(r)
+        append_output_row(r)
 
 
 if __name__ == "__main__":
