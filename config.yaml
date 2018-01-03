@@ -2,4 +2,4 @@
 ---
 max_search: 20
 headless: false
-browser: firefox
+browser: chrome

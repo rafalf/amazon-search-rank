@@ -49,7 +49,7 @@ LOGGING_CONFIG = {
     },
     'version': 1
 }
-AMAZON_URL = "https://www.amazon.com/ref=nb_sb_noss_null"
+AMAZON_URL = "https://www.amazon.com"
 
 
 @contextmanager
@@ -74,7 +74,24 @@ def get_driver(headless, browser):
     else:
         d = webdriver.Firefox()
 
-    d.get(AMAZON_URL)
+    for _ in range(10):
+        try:
+            d.get(AMAZON_URL)
+            break
+        except Exception as err:
+            print(str(err))
+            print("ERROR: d.get(AMAZON_URL) failed!")
+
+            print("Recover: d.quit() & d = webdriver.Firefox()")
+            d.quit()
+            d = webdriver.Firefox()
+
+            with open('fail.txt', 'ab') as file_hdlr:
+                file_hdlr.write("ERROR: d.get(AMAZON_URL) failed!\n")
+                file_hdlr.write(str(err))
+                file_hdlr.write("------------------")
+
+
     d.maximize_window()
     yield d
     #  teardown
@@ -215,7 +232,6 @@ def main():
         with get_driver(conf['headless'], conf['browser']) as driver:
             logger.info('loaded: {}'.format(AMAZON_URL))
 
-            driver.get('https://www.amazon.com/ref=nb_sb_noss_null')
             found_asin = False
 
             try:
