@@ -53,7 +53,7 @@ AMAZON_URL = "https://www.amazon.com"
 
 
 @contextmanager
-def get_driver(headless, browser):
+def get_driver(headless, browser, minimize):
 
     if browser == 'chrome':
         chromeOptions = webdriver.ChromeOptions()
@@ -91,8 +91,9 @@ def get_driver(headless, browser):
                 file_hdlr.write(str(err))
                 file_hdlr.write("------------------")
 
-
-    d.maximize_window()
+    # d.maximize_window()
+    if minimize:
+        d.set_window_position(-2000, 0)
     yield d
     #  teardown
     d.quit()
@@ -229,7 +230,7 @@ def main():
     result = []
     for asin, search, active, details in input_data:
 
-        with get_driver(conf['headless'], conf['browser']) as driver:
+        with get_driver(conf['headless'], conf['browser'], conf.get('minimize')) as driver:
             logger.info('loaded: {}'.format(AMAZON_URL))
 
             found_asin = False
