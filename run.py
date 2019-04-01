@@ -132,8 +132,8 @@ def click_by_css(driver, selector, logger):
         el.click()
         return el
     except Exception as e:
-        logger.info('click_by_css: UnexpectedException: %s' % e)
-        raise Exception('click_by_css: UnexpectedException: %s' % e)
+        logger.info('click_by_css: %s' % e)
+        raise Exception('click_by_css: %s' % e)
 
 
 def send_by_css(driver, selector, value, logger, clear=True):
@@ -166,9 +166,9 @@ def get_element_by_css(driver, css, logger, log=False, wait_time=30):
             raise Exception(str(e))
 
 
-def is_element_by_css(driver, css):
+def is_element_by_css(driver, css, time_out=0.5):
     try:
-        return WebDriverWait(driver, 0.5).until(EC.presence_of_element_located((By.CSS_SELECTOR, css))
+        return WebDriverWait(driver, time_out).until(EC.presence_of_element_located((By.CSS_SELECTOR, css))
                                                            , 'is_element_by_css: timed out on: %s' % css)
     except Exception as e:
         return None
@@ -226,6 +226,7 @@ def main():
     conf = get_config()
     input_data = get_csv()
     logger = get_logger()
+    next_selector = '.a-last>a'
 
     result = []
     for asin, search, active, details in input_data:
@@ -247,7 +248,7 @@ def main():
 
                 idx = 0
                 for next_ctr in range(conf['max_search']):
-                    search_items = get_element_by_css(driver, '#s-result-count', logger, True, 10)
+                    search_items = get_element_by_css(driver, '.s-desktop-toolbar .a-section', logger, True, 10)
                     if search_items:
                         logger.info('items found: {}'.format(search_items.text))
                         all = get_all_elements_by_css(driver, '.s-result-item[data-asin]', logger)
@@ -275,12 +276,15 @@ def main():
 
                     # asin not found yet
                     if not found_asin:
-                        if click_by_css(driver, '#pagnNextString', logger):
+                        if not is_element_by_css(driver, next_selector, 30):
+                            result.append([asin, search, get_today(), "",
+                                           'error: unable to click next page after: {} clicks'.format(next_ctr + 1)])
+                            logger.info('next button not found')
+                            break
+                        else:
+                            click_by_css(driver, next_selector, logger)
                             logger.info('asin not found - next {} clicked'.format(next_ctr + 1))
                             wait_out_spinner(driver, logger)
-                        else:
-                            # asin not found, unable to click next page
-                            result.append([asin, search, get_today(),"",'error: unable to click next page: {}'.format(next_ctr + 1)])
                     else:
                         break
 
