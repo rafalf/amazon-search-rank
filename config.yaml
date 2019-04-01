@@ -4,3 +4,4 @@ max_search: 20
 headless: false
 browser: firefox
 minimize: false
+input_file: input_2.csv
