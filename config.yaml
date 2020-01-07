@@ -1,7 +1,12 @@
-# settings
----
+# settings for search
 max_search: 20
+input_file: input_2.csv
+# settings for reviews
+reviews:
+  input_file: reviews_input.csv
+  output_file: reviews_output.csv
+  pages: 200
+# general settings
+minimize: false
 headless: false
 browser: firefox
-minimize: false
-input_file: input_2.csv
