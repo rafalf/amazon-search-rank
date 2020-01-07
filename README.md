@@ -37,3 +37,26 @@ reference: [cron job](https://ole.michelsen.dk/blog/schedule-jobs-with-crontab-o
 * after it's run, you can run again ```crontab -l``` to check if it's successful
 e.g. You have new mail in /var/mail/rafalfusik so you can ```vi /var/mail/rafalfusik```
 
+
+### Reviews
+* add a new url to scrape reviews from
+```bash
+https://www.amazon.com/BRIXTON-Mens-Brood-Newsboy-Snap/product-reviews/B0812755NJ/ref=cm_cr_arp_d_viewopt_srt?ie=UTF8&reviewerType=all_reviews&sortBy=recent&pageNumber=1,yes
+```
+one must add it to `reviews_input.csv` and set `yes/no` to `yes`, `no` means that it'll be ignored
+* output file: `reviews_output.csv`
+* reviews settings:
+```bash
+reviews:
+  input_file: reviews_input.csv
+  output_file: reviews_output.csv
+  pages: 200
+```
+where:
+pages - max. number of pages to scrape reviews from for each given url
+
+##### Run reviews script
+```bash
+python reviews.py
+```
+
