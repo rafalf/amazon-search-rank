@@ -6,6 +6,12 @@ reviews:
   input_file: reviews_input.csv
   output_file: reviews_output.csv
   pages: 200
+reviews_etsy:
+  input_file: reviews_etsy_input.csv
+  output_file: reviews_etsy_output.csv
+  pages: 10
+  split: "on"  # english: "on", polish: "w dniu"
+  all_data: true
 # general settings
 minimize: false
 headless: false

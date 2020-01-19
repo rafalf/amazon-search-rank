@@ -60,3 +60,27 @@ pages - max. number of pages to scrape reviews from for each given url
 python reviews.py
 ```
 
+### ETSY Reviews
+* add a new url to scrape reviews from
+```bash
+https://www.etsy.com/shop/AmeriTrendsCo/reviews?ref=l2-see-more-feedback,yes
+```
+one must add it to `reviews_etsy_input.csv` and set `yes/no` to `yes`, `no` means that it'll be ignored
+* output file: `reviews_etsy_output.csv`
+* reviews settings:
+```bash
+reviews_etsy:
+  input_file: reviews_etsy_input.csv
+  output_file: reviews_etsy_output.csv
+  pages: 10
+  split: "on"  # english: "on", polish: "w dniu"
+  all_data: true
+```
+where:
+* `pages` - max. number of pages to scrape reviews from for each given url
+* `all_data` - set to `true` if you wish to scrap a user nick and comment as well
+
+##### Run reviews script
+```bash
+python reviews_etsy.py
+```
