@@ -298,7 +298,8 @@ def do_reviews():
 
                             look_up_dates = '.shop2-review-attribution'
                             look_up_review = ".break-word"
-                            lookup_prod_title = 'li[data-region="review"] .flag-body>p'
+                            lookup_prod_title = '.flag-body>p'
+                            lookup_href = '.listing-group>a'
 
                             date_review = review.find_element_by_css_selector(look_up_dates).get_attribute("innerText")
                             date_review = date_review.split(" " + conf.get('reviews_etsy').get("split") + " ")
@@ -310,15 +311,22 @@ def do_reviews():
 
                             title_review = review.find_element_by_css_selector(lookup_prod_title).text
 
-                            logger.info("User comment on: %s, Title: %s, User review: %s",
-                                        date_review, title_review, user_review)
+                            href_review = review.find_element_by_css_selector(lookup_href).get_attribute("href")
+
+                            logger.info("User comment on: %s, Title: %s, User review: %s, Href: %s",
+                                        date_review, title_review, user_review, href_review)
 
                             if conf.get('reviews_etsy').get("all_data"):
-                                result.append([title_review.encode('utf-8'), date_review[1],
+                                result.append([title_review.encode('utf-8'),
+                                               date_review[1],
+                                               href_review,
                                                date_review[0].encode('utf-8'),
                                                user_review.encode('utf-8')])
                             else:
-                                result.append([title_review.encode('utf-8'), date_review[1]])
+                                result.append([title_review.encode('utf-8'),
+                                               date_review[1],
+                                               href_review]
+                                              )
 
                     if not is_element_by_css(driver, next_selector, 2):
                         logger.info('next button not found')
