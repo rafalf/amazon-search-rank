@@ -293,17 +293,29 @@ def do_reviews():
 
                     wait_out_spinner(driver, logger, True)
                     all_reviews = get_all_elements_by_css(driver, '.review-data>a', logger)
+                    all_dates = get_all_elements_by_css(driver, '[data-hook="review-date"]', logger)
+
+                    if len(all_reviews) != len(all_dates):
+                        raise Exception("Check the script: length all_reviews != all_dates, %s != %s",
+                                        len(all_reviews), len(all_dates))
+
                     if all_reviews:
                         logger.info('found reviews: %d on page number: %d', len(all_reviews), next_ctr)
 
-                        for review in all_reviews:
+                        for review, review_date in zip(all_reviews, all_dates):
                             rev = review.get_attribute("innerHTML")
                             for sep in separators:
                                 rev = rev.replace(sep, "|")
                             logger.info('rev: %s', rev)
+
+                            temp = []
+                            for item in rev.split("|"):
+                                temp.append(item[item.find(":") + 1:])
+                            temp.append(review_date.text)
+
                             if "What's this?" not in rev:
-                                result.append(rev.split("|"))
-                                logger.info('result appended: %s', rev.split("|"))
+                                result.append(temp)
+                                logger.info('result appended: %s', temp)
                             else:
                                 logger.info('result not appended: What\'s this? found')
 
