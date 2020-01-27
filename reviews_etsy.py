@@ -309,22 +309,28 @@ def do_reviews():
                             except:
                                 user_review = ""
 
-                            title_review = review.find_element_by_css_selector(lookup_prod_title).text
+                            try:
+                                title_review = review.find_element_by_css_selector(lookup_prod_title).text
+                            except:
+                                title_review = ""
 
-                            href_review = review.find_element_by_css_selector(lookup_href).get_attribute("href")
+                            try:
+                                href_review = review.find_element_by_css_selector(lookup_href).get_attribute("href")
+                            except:
+                                href_review = ""
 
                             logger.info("User comment on: %s, Title: %s, User review: %s, Href: %s",
                                         date_review, title_review, user_review, href_review)
 
                             if conf.get('reviews_etsy').get("all_data"):
                                 result.append([title_review.encode('utf-8'),
-                                               date_review[1],
+                                               date_review[1].encode('utf-8'),
                                                href_review,
                                                date_review[0].encode('utf-8'),
                                                user_review.encode('utf-8')])
                             else:
                                 result.append([title_review.encode('utf-8'),
-                                               date_review[1],
+                                               date_review[1].encode('utf-8'),
                                                href_review]
                                               )
 
@@ -334,6 +340,7 @@ def do_reviews():
                     else:
                         click_by_css(driver, next_selector, logger)
                         logger.info('next {} clicked'.format(next_ctr + 1))
+                        logger.info('url: %s', driver.current_url)
                         # wait_out_spinner(driver, logger)
 
                 else:

@@ -9,7 +9,7 @@ reviews:
 reviews_etsy:
   input_file: reviews_etsy_input.csv
   output_file: reviews_etsy_output.csv
-  pages: 10
+  pages: 20
   split: "on"  # english: "on", polish: "w dniu"
   all_data: true
 # general settings
