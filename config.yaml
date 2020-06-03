@@ -5,7 +5,8 @@ input_file: input_2.csv
 reviews:
   input_file: reviews_input.csv
   output_file: reviews_output.csv
-  pages: 200
+  pages: 20
+  dates_and_size: false
 reviews_etsy:
   input_file: reviews_etsy_input.csv
   output_file: reviews_etsy_output.csv

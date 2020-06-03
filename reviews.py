@@ -292,12 +292,30 @@ def do_reviews():
                 for next_ctr in range(1, max_range + 1):
 
                     wait_out_spinner(driver, logger, True)
-                    all_reviews = get_all_elements_by_css(driver, '.review-data>a', logger)
-                    all_dates = get_all_elements_by_css(driver, '[data-hook="review-date"]', logger)
 
-                    if len(all_reviews) != len(all_dates):
-                        raise Exception("Check the script: length all_reviews != all_dates, %s != %s",
-                                        len(all_reviews), len(all_dates))
+                    if conf['reviews']['dates_and_size']:
+                        all_reviews = get_all_elements_by_css(driver, '.review-data>a', logger)
+                        all_dates = get_all_elements_by_css(driver, '[data-hook="review-date"]', logger)
+
+                        if len(all_reviews) != len(all_dates):
+                            raise Exception("Check the script: length all_reviews != all_dates, %s != %s",
+                                            len(all_reviews), len(all_dates))
+                    else:
+                        reviews_customer = get_all_elements_by_css(driver, "[id*='customer_review']", logger)
+
+                        all_reviews = []
+                        all_dates = []
+
+                        for idx, customer in enumerate(reviews_customer):
+                            reviews = customer.find_elements_by_css_selector('.review-data>a')
+                            dates = customer.find_elements_by_css_selector('[data-hook="review-date"]')
+
+                            if len(reviews) != len(dates):
+                                logger.info('exclude (%d): reviews: %d, dates: %d', idx, len(reviews), len(dates))
+                            else:
+                                all_reviews.append(reviews[0])
+                                all_dates.append(dates[0])
+                                logger.info('include (%d): reviews: %d, dates: %d', idx, len(reviews), len(dates))
 
                     if all_reviews:
                         logger.info('found reviews: %d on page number: %d', len(all_reviews), next_ctr)
