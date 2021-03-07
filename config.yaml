@@ -1,4 +1,4 @@
-# settings for search
+# settings for run.py
 max_search: 20
 input_file: input_2.csv
 # settings for reviews
@@ -13,6 +13,11 @@ reviews_etsy:
   pages: 20
   split: "on"  # english: "on", polish: "w dniu"
   all_data: true
+# settings for search.py
+search:
+  max_search: 5
+  input: search_in.csv
+  output: search_out.csv
 # general settings
 minimize: false
 headless: false

@@ -114,7 +114,7 @@ def get_config():
 
 def get_csv(input_file):
     if not input_file:
-        input_file = 'input.csv'
+        input_file = 'search_in.csv'
     with open(input_file, 'rb') as f:
         reader = csv.reader(f)
         next(reader)  # heading
@@ -123,7 +123,7 @@ def get_csv(input_file):
 
 
 def append_output_row(row):
-    with open(r'output.csv', 'ab') as f:
+    with open(r'search_out.csv', 'ab') as f:
         writer = csv.writer(f, delimiter=',',quoting=csv.QUOTE_MINIMAL)
         writer.writerow(row)
 
@@ -172,14 +172,14 @@ def is_element_by_css(driver, css, time_out=0.5):
     try:
         return WebDriverWait(driver, time_out).until(EC.presence_of_element_located((By.CSS_SELECTOR, css))
                                                            , 'is_element_by_css: timed out on: %s' % css)
-    except Exception as e:
+    except Exception:
         return None
 
 
 def is_elem_concatenate_by_css(element, css):
     try:
         return element.find_element_by_css_selector(css)
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -227,22 +227,20 @@ def get_today():
 def main():
 
     conf = get_config()
-    input_data = get_csv(conf.get("input_file"))
+    input_data = get_csv(conf['search']['input'])
     logger = get_logger()
     next_selector = '.a-last>a'
     sponsored_append_selector = '[data-component-type="sp-sponsored-result"]'
 
-    result = []
-    for asin, search, active, details in input_data:
+    for search, exclude_words, include_words, run, comment in input_data:
 
         with get_driver(conf['headless'], conf['browser'], conf.get('minimize')) as driver:
             logger.info('loading: {} for search: {}'.format(AMAZON_URL, search))
 
-            found_asin = False
-
             try:
-                if active != "yes":
-                    result.append([asin, search, get_today(), 'not active'])
+                if run != "yes":
+                    result.append([search, 'marked as not to run'])
+                    logger.info('marked as not to run')
                     continue
 
                 send_by_css(driver, ".nav-search-field input", search, logger)
@@ -252,58 +250,58 @@ def main():
 
                 idx = 0
                 idx_incl_sponsored = 0
-                for next_ctr in range(conf['max_search']):
+                result = []
+                for next_ctr in range(conf['search']['max_search']):
                     search_items = get_element_by_css(driver, '.s-desktop-toolbar .a-section', logger, True, 10)
                     if search_items:
                         logger.info('items found: {}'.format(search_items.text))
-                        all = get_all_elements_by_css(driver, '.s-result-item[data-asin]', logger)
-                        for ctr, el in enumerate(all, 1):
+                        all_asins = get_all_elements_by_css(driver, '.s-result-item[data-asin][data-component-id]', logger)
+                        for ctr, el in enumerate(all_asins, 1):
                             idx += 1  # rank excluding sponsored
-                            idx_incl_sponsored += 1 # rank incl sponsored
+                            idx_incl_sponsored += 1  # rank incl sponsored
 
                             asin_temp = el.get_attribute('data-asin')
                             if is_elem_concatenate_by_css(el, sponsored_append_selector):
                                 # sponsored so deduct
                                 idx -= 1
-
-                                if asin_temp == asin:
-                                    logger.info('found asin {} but its sponsored-products'.format(asin))
-                                    result.append([asin, search, get_today(), next_ctr + 1, "found-in-sponsored-products", idx_incl_sponsored ])
+                                logger.info('found asin {} but its sponsored-products'.format(asin_temp))
                                 continue
 
-                            if asin_temp == asin:
-                                result.append([asin, search, get_today(), next_ctr + 1, idx, idx_incl_sponsored])
-                                logger.info('found asin {} at place: {}'.format(asin, idx))
-                                found_asin = True
-                                break
+                            else:
+                                if asin_temp != "":
+                                    try:
+                                        title = el.find_element_by_css_selector("span.a-text-normal").text.encode('utf-8')
+
+                                        if title.count(exclude_words) or title.count(exclude_words.lower()):
+                                            logger.info("Found excluded word: %s in: %s", exclude_words, title)
+                                            continue
+
+                                        if include_words != "" and not title.count(include_words) and not title.count(include_words.lower()):
+                                            logger.info("Not found required word: %s in %s", include_words, title)
+                                            continue
+                                        elif include_words != "":
+                                            logger.info("Found required word: %s in: %s", include_words, title)
+                                            result.append([asin_temp, title])
+                                        else:
+                                            result.append([asin_temp, title])
+                                    except:
+                                        logger.info("Could not get title for asin: %s", asin_temp)
                     else:
                         # search item not found
-                        result.append([asin, search, get_today(),"",'error: not found searched items returned', ""])
-                        logger.info('searched items not returned')
+                        result.append([search, 'searched items not found'])
+                        logger.info('searched items not found')
                         break
 
-                    # asin not found yet
-                    if not found_asin:
-                        if not is_element_by_css(driver, next_selector, 30):
-                            result.append([asin, search, get_today(), "",
-                                           'error: unable to click next page after: {} clicks'.format(next_ctr + 1),
-                                           ''])
-                            logger.info('next button not found')
-                            break
-                        else:
-                            click_by_css(driver, next_selector, logger)
-                            logger.info('asin not found - next {} clicked'.format(next_ctr + 1))
-                            wait_out_spinner(driver, logger)
+                    if not is_element_by_css(driver, next_selector, 15):
+                        logger.info('next button not found')
+                        break
                     else:
-                        break
-
-                else:
-                    # asin not found, max search reached
-                    result.append([asin, search, get_today(),"", 'not found on pages: {}'.format(conf['max_search']), ''])
-                    logger.info('asin not found - max search reached'.format(conf['max_search']))
+                        click_by_css(driver, next_selector, logger)
+                        logger.info('next {} clicked'.format(next_ctr + 1))
+                        wait_out_spinner(driver, logger)
 
             except Exception as err:
-                result.append([asin, search, get_today(), "", err, ''])
+                result.append([search, err])
 
     logger.info('Summary:')
     for r in result:

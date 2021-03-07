@@ -84,3 +84,23 @@ where:
 ```bash
 python reviews_etsy.py
 ```
+
+### Search ASINS 
+
+1. Run script which collects ASINs from 1 to x pages deep
+2. Ability to apply filters to the collection process:
+* Filter out ASINs associated with ads
+* Filter out ASINs that don’t contain a specific (case-insensitive) word in the title. For example, I may require that each ASIN has the word “Dungeon” in the title.
+* Filter out ASINs that DO contain specific case-insensitive words. For example, I may want to exclude listings with the word “Disney” in the title.
+* The keyword conditions can be OR conditions (for example, filter out ASINs that contain either “Disney” or “Nike”). For now, I don’t think I need AND condition.
+3. Output to a CSV - ASIN and the corresponding title
+
+##### Run reviews script
+```bash
+python search.py
+```
+
+##### Files
+* search.py
+* search_in.csv
+* search_out.csv
