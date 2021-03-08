@@ -19,6 +19,7 @@ from selenium.webdriver.common.by import By
 import csv
 import datetime
 import time
+import re
 
 LOGGING_CONFIG = {
     'formatters': {
@@ -273,11 +274,13 @@ def main():
                                     try:
                                         title = el.find_element_by_css_selector("span.a-text-normal").text.encode('utf-8')
 
-                                        if exclude_words != "" and (title.count(exclude_words) or title.count(exclude_words.lower())):
+                                        exclude_match = bool(re.search(exclude_words, title, re.IGNORECASE))
+                                        if exclude_words != "" and exclude_match:
                                             logger.info("Found excluded word: %s in: %s", exclude_words, title)
                                             continue
 
-                                        if include_words != "" and not title.count(include_words) and not title.count(include_words.lower()):
+                                        include_match = bool(re.search(include_words, title, re.IGNORECASE))
+                                        if include_words != "" and not include_match:
                                             logger.info("Not found required word: %s in %s", include_words, title)
                                             continue
                                         elif include_words != "":
