@@ -1,2 +1,3 @@
 SEARCH TERM,EXCLUDE_WORDS,INCLUDE_WORDS,RUN,COMMENT
-dice bags,Bag,Dice,yes,
+dice bags,Bag,Dice,no,
+dice bags,,,yes,

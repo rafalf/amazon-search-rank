@@ -237,6 +237,8 @@ def main():
         with get_driver(conf['headless'], conf['browser'], conf.get('minimize')) as driver:
             logger.info('loading: {} for search: {}'.format(AMAZON_URL, search))
 
+            result = []
+
             try:
                 if run != "yes":
                     result.append([search, 'marked as not to run'])
@@ -250,7 +252,6 @@ def main():
 
                 idx = 0
                 idx_incl_sponsored = 0
-                result = []
                 for next_ctr in range(conf['search']['max_search']):
                     search_items = get_element_by_css(driver, '.s-desktop-toolbar .a-section', logger, True, 10)
                     if search_items:
@@ -272,7 +273,7 @@ def main():
                                     try:
                                         title = el.find_element_by_css_selector("span.a-text-normal").text.encode('utf-8')
 
-                                        if title.count(exclude_words) or title.count(exclude_words.lower()):
+                                        if exclude_words != "" and (title.count(exclude_words) or title.count(exclude_words.lower())):
                                             logger.info("Found excluded word: %s in: %s", exclude_words, title)
                                             continue
 
@@ -301,6 +302,7 @@ def main():
                         wait_out_spinner(driver, logger)
 
             except Exception as err:
+                logger.error(err)
                 result.append([search, err])
 
     logger.info('Summary:')
