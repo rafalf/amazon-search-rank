@@ -279,15 +279,19 @@ def main():
                                             logger.info("Found excluded word: %s in: %s", exclude_words, title)
                                             continue
 
-                                        include_match = bool(re.search(include_words, title, re.IGNORECASE))
-                                        if include_words != "" and not include_match:
-                                            logger.info("Not found required word: %s in %s", include_words, title)
-                                            continue
-                                        elif include_words != "":
-                                            logger.info("Found required word: %s in: %s", include_words, title)
-                                            result.append([asin_temp, title])
-                                        else:
-                                            result.append([asin_temp, title])
+                                        include_words_list = include_words.split(",")
+                                        for word in include_words_list:
+                                            include_match = bool(re.search(word, title, re.IGNORECASE))
+                                            if word != "" and not include_match:
+                                                logger.info("Not found required word: %s in %s", word, title)
+                                                continue
+                                            elif word != "":
+                                                logger.info("Found required word: %s in: %s", word, title)
+                                                result.append([asin_temp, title])
+                                                break
+                                            else:
+                                                result.append([asin_temp, title])
+                                                break
                                     except:
                                         logger.info("Could not get title for asin: %s", asin_temp)
                     else:
