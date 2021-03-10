@@ -274,16 +274,22 @@ def main():
                                     try:
                                         title = el.find_element_by_css_selector("span.a-text-normal").text.encode('utf-8')
 
-                                        exclude_match = bool(re.search(exclude_words, title, re.IGNORECASE))
+                                        exclude_words_list = exclude_words.split(",")
+
+                                        for word in exclude_words_list:
+                                            exclude_match = bool(re.search(word, title, re.IGNORECASE))
+                                            if exclude_match:
+                                                break
+
                                         if exclude_words != "" and exclude_match:
-                                            logger.info("Found excluded word: %s in: %s", exclude_words, title)
+                                            logger.info("Found excluded word: |%s| in: |%s|", word, title)
                                             continue
 
                                         include_words_list = include_words.split(",")
                                         for word in include_words_list:
                                             include_match = bool(re.search(word, title, re.IGNORECASE))
                                             if word != "" and not include_match:
-                                                logger.info("Not found required word: %s in %s", word, title)
+                                                logger.info("Not found required word: |%s| in |%s|", word, title)
                                                 continue
                                             elif word != "":
                                                 logger.info("Found required word: %s in: %s", word, title)

@@ -1,3 +1,2 @@
 SEARCH TERM,EXCLUDE_WORDS,INCLUDE_WORDS,RUN,COMMENT
-dice bags,DICE,"DUNGEONS,Crocs",no,
-dice bags,DICE,DUNGEONS,yes,
+dice bags,"DICE,Ultra","DUNGEONS,Flayer,Pouch",yes,
